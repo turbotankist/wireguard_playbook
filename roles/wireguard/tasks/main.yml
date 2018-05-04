@@ -1,0 +1,42 @@
+---
+
+- name: install wireguard repository (debian/ubuntu)
+  apt_repository: 
+    repo: ppa:wireguard/wireguard
+    state: present
+    update_cache: yes
+  when: (ansible_os_family == "Debian")
+
+- name: install wireguard
+  apt: 
+    # update_cache: yes
+    name: wireguard-tools 
+    name: wireguard-dkms
+    state: latest
+
+- name: generate private_key
+  shell: wg genkey
+  register: WG_KEY
+
+- name: generate pub_key
+  shell: echo {{ WG_KEY.stdout_lines[0] }} | wg pubkey
+  register: WG_PUB
+  when: WG_KEY 
+
+- name: create configfile from template
+  template: 
+    src: wg0.conf.j2
+    dest: /etc/wireguard/wg0.conf
+    mode: 0644
+    force: yes
+
+- name: create pubfile
+  copy:
+    dest: "/etc/wireguard/publickey"
+    content: >
+       {{ WG_PUB.stdout_lines[0] }}
+
+- name: start wireguard
+  systemd:
+    name:  wg-quick@wg0
+    state: restarted
