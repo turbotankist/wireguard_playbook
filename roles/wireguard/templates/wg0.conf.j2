@@ -8,7 +8,7 @@ Address = {{ vpn_ip }}/24
 {% if inventory_hostname != hostvars[host]['inventory_hostname'] %}
 [Peer]
 PublicKey = {{ hostvars[host]['WG_PUB'].stdout_lines[0] }}
-AllowedIPs = {{ hostvars[host]['vpn_ip'] }}/32 {% if site_net != hostvars[host]['site_net'] %}, {{ hostvars[host]['ansible_eth1'].ipv4.address }} {% endif %}
+AllowedIPs = {{ hostvars[host]['vpn_ip'] }}/32, {{ hostvars[host]['add_routes']}}, 
 
 Endpoint = {{ hostvars[host]['ansible_host'] }}:{{ ListenPort }}
 
